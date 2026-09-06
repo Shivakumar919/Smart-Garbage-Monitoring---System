@@ -1,0 +1,407 @@
+.ecobin-page {
+  min-height: 100vh;
+  padding: 28px;
+  background: #f4f8f5;
+  color: #19352a;
+  font-family: Arial, sans-serif;
+}
+
+/* HEADER */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.page-header p {
+  margin: 7px 0 0;
+  color: #718078;
+  font-size: 14px;
+}
+
+.truck-count {
+  background: #ffffff;
+  border: 1px solid #dce9df;
+  border-radius: 12px;
+  padding: 12px 20px;
+  text-align: center;
+}
+
+.truck-count span {
+  display: block;
+  color: #159447;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.truck-count small {
+  color: #718078;
+}
+
+/* ASSIGN BOX */
+
+.assign-box {
+  background: #ffffff;
+  border: 1px solid #dfeae2;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 3px 12px rgba(25, 53, 42, 0.05);
+}
+
+.box-title {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 20px;
+}
+
+.title-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #e8f6ed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+}
+
+.box-title h2,
+.section-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.box-title p,
+.section-header p {
+  margin: 5px 0 0;
+  color: #7a8780;
+  font-size: 13px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  align-items: end;
+}
+
+.input-group {
+  flex: 1;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.input-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #d7e2da;
+  border-radius: 8px;
+  background: #fbfdfb;
+  color: #294238;
+  outline: none;
+}
+
+.input-group select:focus {
+  border-color: #27a45a;
+}
+
+.assign-button {
+  border: none;
+  background: #168c47;
+  color: white;
+  padding: 12px 20px;
+  height: 42px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.assign-button:hover {
+  background: #10783b;
+}
+
+.assign-button:disabled {
+  background: #b9c6bd;
+  cursor: not-allowed;
+}
+
+/* SECTION */
+
+.section {
+  margin-top: 28px;
+}
+
+.section-header {
+  margin-bottom: 13px;
+}
+
+/* EMPTY */
+
+.empty-box {
+  background: white;
+  border: 1px dashed #cbd9cf;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 32px;
+}
+
+.empty-box h3 {
+  margin: 10px 0 5px;
+}
+
+.empty-box p {
+  margin: 0;
+  color: #7b877f;
+  font-size: 13px;
+}
+
+/* ASSIGNED CARDS */
+
+.assigned-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.assigned-card {
+  background: white;
+  border: 1px solid #dfeae2;
+  border-radius: 13px;
+  padding: 18px;
+  box-shadow: 0 3px 10px rgba(25, 53, 42, 0.04);
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.truck-icon {
+  width: 42px;
+  height: 42px;
+  background: #e8f6ed;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.card-top h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.card-top span {
+  color: #718078;
+  font-size: 13px;
+}
+
+.status {
+  margin-left: auto;
+  background: #e8f7ed;
+  color: #168c47;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.card-info {
+  display: flex;
+  gap: 50px;
+  border-top: 1px solid #edf2ee;
+  border-bottom: 1px solid #edf2ee;
+  margin: 16px 0;
+  padding: 13px 0;
+}
+
+.card-info small {
+  display: block;
+  color: #89958e;
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.card-info strong {
+  font-size: 13px;
+}
+
+.navigate-button {
+  width: 100%;
+  border: 1px solid #168c47;
+  background: white;
+  color: #168c47;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.navigate-button:hover {
+  background: #eaf7ee;
+}
+
+/* BIN LIST */
+
+.bin-table {
+  background: white;
+  border: 1px solid #dfeae2;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bin-row {
+  display: flex;
+  align-items: center;
+  padding: 15px 18px;
+  border-bottom: 1px solid #edf2ee;
+  gap: 20px;
+}
+
+.bin-row:last-child {
+  border-bottom: none;
+}
+
+.bin-name {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.bin-symbol {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #e8f6ed;
+  color: #168c47;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 11px;
+}
+
+.bin-name strong,
+.bin-name span {
+  display: block;
+}
+
+.bin-name span {
+  margin-top: 3px;
+  color: #7b877f;
+  font-size: 12px;
+}
+
+.fill-info {
+  width: 170px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fill-bar {
+  width: 110px;
+  height: 7px;
+  background: #e5ebe7;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.fill-bar div {
+  height: 100%;
+  background: #ef9b32;
+  border-radius: 10px;
+}
+
+.fill-info strong {
+  font-size: 12px;
+}
+
+.priority {
+  width: 90px;
+  text-align: center;
+  padding: 5px 7px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.priority.high {
+  background: #fff0e5;
+  color: #d66b18;
+}
+
+.priority.normal {
+  background: #e8f6ed;
+  color: #168c47;
+}
+
+/* MOBILE */
+
+@media (max-width: 800px) {
+
+  .ecobin-page {
+    padding: 18px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .assign-button {
+    width: 100%;
+  }
+
+  .assigned-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bin-row {
+    flex-wrap: wrap;
+  }
+
+  .fill-info {
+    width: 100%;
+  }
+
+  .priority {
+    margin-left: 41px;
+  }
+}
+
+@media (max-width: 500px) {
+
+  .page-header {
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .page-header h1 {
+    font-size: 22px;
+  }
+
+  .truck-count {
+    padding: 9px 12px;
+  }
+}

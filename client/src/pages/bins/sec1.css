@@ -1,0 +1,314 @@
+.sector-page {
+  min-height: 100vh;
+  background: #f6f8f7;
+  padding: 28px;
+  color: #17211c;
+}
+
+/* HEADER */
+
+.sector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 25px;
+}
+
+.breadcrumb {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #7b8780;
+}
+
+.sector-header h1 {
+  margin: 8px 0 5px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.sector-header p {
+  margin: 0;
+  color: #78837d;
+  font-size: 14px;
+}
+
+.sector-status {
+  background: #ffffff;
+  border: 1px solid #e1e7e3;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #28a745;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 7px;
+}
+
+
+/* STATS */
+
+.sector-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8e4;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.stat-card span {
+  display: block;
+  color: #7c8781;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.stat-card strong {
+  display: block;
+  font-size: 25px;
+  margin-bottom: 4px;
+}
+
+.stat-card small {
+  color: #9aa39e;
+}
+
+.stat-card.warning strong {
+  color: #d97706;
+}
+
+
+/* MAIN GRID */
+
+.sector-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.4fr;
+  gap: 20px;
+}
+
+.route-card,
+.map-card {
+  background: #ffffff;
+  border: 1px solid #e2e8e4;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 20px;
+  border-bottom: 1px solid #edf0ee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #87928b;
+}
+
+.card-header h2 {
+  margin: 5px 0 0;
+  font-size: 18px;
+}
+
+.route-count {
+  background: #f0f4f1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+/* ROUTE */
+
+.route-list {
+  padding: 8px 20px 20px;
+}
+
+.route-item {
+  display: flex;
+  position: relative;
+  padding: 14px 0;
+}
+
+.route-number {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  background: #1f7a4d;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 2;
+}
+
+.route-line {
+  position: absolute;
+  width: 2px;
+  height: 55px;
+  background: #d8e2dc;
+  left: 14px;
+  top: 43px;
+}
+
+.route-info {
+  flex: 1;
+  margin-left: 14px;
+}
+
+.bin-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bin-top strong {
+  font-size: 14px;
+}
+
+.bin-location {
+  display: block;
+  font-size: 11px;
+  color: #89938d;
+  margin-top: 3px;
+}
+
+.fill-badge {
+  padding: 5px 8px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.fill-badge.critical {
+  background: #fff0ef;
+  color: #dc2626;
+}
+
+.fill-badge.high {
+  background: #fff7e8;
+  color: #d97706;
+}
+
+.collection-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.collection-action span {
+  font-size: 11px;
+  color: #8a948e;
+}
+
+.collection-action button {
+  border: 0;
+  background: #f1f5f2;
+  color: #246b45;
+  padding: 6px 11px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+/* MAP */
+
+.sector-map {
+  height: 470px;
+}
+
+.sector-map .leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.map-status {
+  color: #25804e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.map-footer {
+  border-top: 1px solid #edf0ee;
+  padding: 12px 20px;
+  display: flex;
+  gap: 20px;
+  font-size: 11px;
+  color: #727c76;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.critical-dot {
+  background: #dc2626;
+}
+
+.high-dot {
+  background: #d97706;
+}
+
+.route-symbol {
+  width: 18px;
+  height: 2px;
+  background: #1f7a4d;
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .sector-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sector-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .sector-page {
+    padding: 15px;
+  }
+
+  .sector-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .sector-stats {
+    grid-template-columns: 1fr;
+  }
+}
