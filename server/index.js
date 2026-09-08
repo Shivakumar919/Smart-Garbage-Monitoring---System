@@ -1,21 +1,25 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const multer = require("multer");
 
 const bins = require("./bindata/sec1");
-
 const Collection = require("./Database/request");
 const Complaint = require("./Database/Complaint");
 
 const app = express();
-const multer = require("multer");
-app.use(express.json());
-const upload = multer({
-  dest: "uploads/",
-});
+
+// ==========================================
+// MIDDLEWARE
+// ==========================================
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const upload = multer({
+  dest: "uploads/",
+});
 
 // ==========================================
 // MONGODB CONNECTION
@@ -31,6 +35,16 @@ mongoose
   });
 
 // ==========================================
+// TEST API
+// ==========================================
+
+app.get("/", (req, res) => {
+  res.json({
+    message: "Smart Garbage Monitoring System API is running",
+  });
+});
+
+// ==========================================
 // BIN API
 // ==========================================
 
@@ -39,45 +53,107 @@ app.get("/api/bindata", (req, res) => {
   res.json(bins);
 });
 
-// Update multiple bins
-app.put("/api/bins", (req, res) => {
-  const { bins: updatedBins } = req.body;
+// ==========================================
+// UPDATE MULTIPLE BINS
+// ==========================================
 
-  if (!Array.isArray(updatedBins)) {
-    return res.status(400).json({
-      message: "bins must be an array",
+app.put("/api/bins", (req, res) => {
+  try {
+    // Prevent req.body undefined error
+    const body = req.body || {};
+    const updatedBins = body.bins;
+
+    // Check whether bins is an array
+    if (!Array.isArray(updatedBins)) {
+      return res.status(400).json({
+        success: false,
+        message: "bins must be an array",
+        example: {
+          bins: [
+            {
+              id: "BIN-001",
+              fillLevel: 85,
+            },
+          ],
+        },
+      });
+    }
+
+    // Update each bin
+    updatedBins.forEach((updated) => {
+      const bin = bins.find(
+        (b) => String(b.id) === String(updated.id)
+      );
+
+      if (bin) {
+        const level = Number(updated.fillLevel);
+
+        // Validate fill level
+        if (isNaN(level) || level < 0 || level > 100) {
+          return;
+        }
+
+        bin.fillLevel = level;
+
+        // Set status automatically
+        if (bin.fillLevel >= 80) {
+          bin.status = "Full";
+        } else if (bin.fillLevel >= 60) {
+          bin.status = "Warning";
+        } else {
+          bin.status = "Normal";
+        }
+
+        bin.lastUpdated = new Date().toISOString();
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "All bins updated successfully",
+      bins: bins,
+    });
+  } catch (error) {
+    console.error("Bin update error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update bins",
+      error: error.message,
     });
   }
+});
 
-  updatedBins.forEach((updated) => {
-    const bin = bins.find((b) => b.id === updated.id);
+// ==========================================
+// GET BINS NEEDING COLLECTION
+// ==========================================
 
-    if (bin) {
-      bin.fillLevel = Number(updated.fillLevel);
+// Bins with fill level >= 70%
+app.get("/api/bins/collection", (req, res) => {
+  try {
+    const collectionBins = bins.filter(
+      (bin) => Number(bin.fillLevel) >= 70
+    );
 
-      if (bin.fillLevel >= 80) {
-        bin.status = "Full";
-      } else if (bin.fillLevel >= 60) {
-        bin.status = "Warning";
-      } else {
-        bin.status = "Normal";
-      }
-
-      bin.lastUpdated = new Date().toISOString();
-    }
-  });
-
-  res.json({
-    message: "All bins updated successfully",
-    bins,
-  });
+    res.json({
+      success: true,
+      count: collectionBins.length,
+      bins: collectionBins,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to get collection bins",
+      error: error.message,
+    });
+  }
 });
 
 // ==========================================
 // COLLECTION REQUEST
 // ==========================================
 
-// Put collection request
+// Update collection request
 app.put("/api/collection/:id", async (req, res) => {
   try {
     const request = await Collection.findByIdAndUpdate(
@@ -102,6 +178,8 @@ app.put("/api/collection/:id", async (req, res) => {
       data: request,
     });
   } catch (error) {
+    console.error("Collection update error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -109,7 +187,10 @@ app.put("/api/collection/:id", async (req, res) => {
   }
 });
 
-// GET collection requests
+// ==========================================
+// GET COLLECTION REQUESTS
+// ==========================================
+
 app.get("/api/collection", async (req, res) => {
   try {
     const collections = await Collection.find().sort({
@@ -133,7 +214,8 @@ app.get("/api/collection", async (req, res) => {
 // ==========================================
 // COMPLAINT
 // ==========================================
-// Put complaint
+
+// Update complaint
 app.put("/api/complaints/:id", async (req, res) => {
   try {
     const complaint = await Complaint.findByIdAndUpdate(
@@ -158,6 +240,8 @@ app.put("/api/complaints/:id", async (req, res) => {
       data: complaint,
     });
   } catch (error) {
+    console.error("Complaint update error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -165,7 +249,10 @@ app.put("/api/complaints/:id", async (req, res) => {
   }
 });
 
-// GET complaints
+// ==========================================
+// GET COMPLAINTS
+// ==========================================
+
 app.get("/api/complaints", async (req, res) => {
   try {
     const complaints = await Complaint.find().sort({
@@ -187,9 +274,36 @@ app.get("/api/complaints", async (req, res) => {
 });
 
 // ==========================================
+// 404 HANDLER
+// ==========================================
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+// ==========================================
+// ERROR HANDLER
+// ==========================================
+
+app.use((error, req, res, next) => {
+  console.error(error);
+
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+    error: error.message,
+  });
+});
+
+// ==========================================
 // SERVER
 // ==========================================
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+const PORT = 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

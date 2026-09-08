@@ -72,6 +72,9 @@ function Sector1() {
   // =====================================================
   // COLLECTION ROUTE
   // ONLY BINS ABOVE 50%
+  //
+  // HIGHEST WASTE BIN IS FIRST
+  // THEREFORE TRUCK STARTS FROM collectionRoute[0]
   // =====================================================
 
   const collectionRoute = [...bins]
@@ -88,6 +91,15 @@ function Sector1() {
       : 0;
 
   // =====================================================
+  // HIGHEST WASTE BIN
+  // =====================================================
+
+  const highestWasteBin =
+    collectionRoute.length > 0
+      ? collectionRoute[0]
+      : null;
+
+  // =====================================================
   // LOADING
   // =====================================================
 
@@ -96,7 +108,9 @@ function Sector1() {
       <main className="sector-page">
         <div className="loading-state">
           <h2>Loading bin data...</h2>
-          <p>Connecting to smart waste monitoring server.</p>
+          <p>
+            Connecting to smart waste monitoring server.
+          </p>
         </div>
       </main>
     );
@@ -110,6 +124,7 @@ function Sector1() {
     return (
       <main className="sector-page">
         <div className="error-state">
+
           <h2>{error}</h2>
 
           <p>
@@ -122,6 +137,7 @@ function Sector1() {
           >
             Retry
           </button>
+
         </div>
       </main>
     );
@@ -141,11 +157,14 @@ function Sector1() {
       <header className="sector-header">
 
         <div>
+
           <span className="breadcrumb">
             ADMIN / SECTORS / SECTOR 1
           </span>
 
-          <h1>Sector 1 — LB Nagar</h1>
+          <h1>
+            Sector 1 — LB Nagar
+          </h1>
 
           <p>
             Smart waste collection monitoring and
@@ -158,13 +177,17 @@ function Sector1() {
               {lastUpdated.toLocaleTimeString()}
             </small>
           )}
+
         </div>
 
         <div className="header-actions">
 
           <div className="sector-status">
+
             <span className="status-dot"></span>
+
             Live Monitoring
+
           </div>
 
           <button
@@ -172,7 +195,9 @@ function Sector1() {
             onClick={() => fetchBins(true)}
             disabled={refreshing}
           >
-            {refreshing ? "Refreshing..." : "↻ Refresh Data"}
+            {refreshing
+              ? "Refreshing..."
+              : "↻ Refresh Data"}
           </button>
 
         </div>
@@ -196,20 +221,47 @@ function Sector1() {
       <section className="sector-stats">
 
         <div className="stat-card">
-          <span>Total Bins</span>
-          <strong>{bins.length}</strong>
-          <small>Sector 1</small>
+
+          <span>
+            Total Bins
+          </span>
+
+          <strong>
+            {bins.length}
+          </strong>
+
+          <small>
+            Sector 1
+          </small>
+
         </div>
 
         <div className="stat-card warning">
-          <span>Collection Required</span>
-          <strong>{collectionRoute.length}</strong>
-          <small>Above 50%</small>
+
+          <span>
+            Collection Required
+          </span>
+
+          <strong>
+            {collectionRoute.length}
+          </strong>
+
+          <small>
+            Above 50%
+          </small>
+
         </div>
 
         <div className="stat-card">
-          <span>Highest Fill Level</span>
-          <strong>{highestLevel}%</strong>
+
+          <span>
+            Highest Fill Level
+          </span>
+
+          <strong>
+            {highestLevel}%
+          </strong>
+
           <small>
             {highestLevel > 80
               ? "Critical"
@@ -217,10 +269,15 @@ function Sector1() {
               ? "Warning"
               : "Normal"}
           </small>
+
         </div>
 
         <div className="stat-card">
-          <span>Route Status</span>
+
+          <span>
+            Route Status
+          </span>
+
           <strong>
             {collectionRoute.length > 0
               ? "Ready"
@@ -232,6 +289,7 @@ function Sector1() {
               ? `${collectionRoute.length} stops`
               : "No collection required"}
           </small>
+
         </div>
 
       </section>
@@ -251,11 +309,15 @@ function Sector1() {
           <div className="card-header">
 
             <div>
+
               <span className="section-label">
                 COLLECTION ROUTE
               </span>
 
-              <h2>Priority Collection</h2>
+              <h2>
+                Priority Collection
+              </h2>
+
             </div>
 
             <span className="route-count">
@@ -264,15 +326,61 @@ function Sector1() {
 
           </div>
 
+          {/* =================================================
+              TRUCK START INFORMATION
+          ================================================= */}
+
+          {highestWasteBin && (
+            <div
+              style={{
+                margin: "0 16px 16px",
+                padding: "12px 14px",
+                borderRadius: "10px",
+                background: "#fee2e2",
+                border: "1px solid #fecaca",
+              }}
+            >
+
+              <strong
+                style={{
+                  display: "block",
+                  color: "#b91c1c",
+                }}
+              >
+                🚛 Truck Starting Point
+              </strong>
+
+              <span>
+                {highestWasteBin.id} —{" "}
+                {highestWasteBin.level}% waste
+              </span>
+
+              <small
+                style={{
+                  display: "block",
+                  marginTop: "4px",
+                }}
+              >
+                Highest-waste bin. Route starts here.
+              </small>
+
+            </div>
+          )}
+
           <div className="route-list">
 
             {collectionRoute.length === 0 ? (
 
               <div className="empty-route">
-                <strong>No collection required</strong>
+
+                <strong>
+                  No collection required
+                </strong>
+
                 <p>
                   All bins are currently at or below 50%.
                 </p>
+
               </div>
 
             ) : (
@@ -284,7 +392,17 @@ function Sector1() {
                   key={bin.id}
                 >
 
-                  <div className="route-number">
+                  {/* NUMBER */}
+
+                  <div
+                    className="route-number"
+                    style={{
+                      background:
+                        index === 0
+                          ? "#dc2626"
+                          : "#2563eb",
+                    }}
+                  >
                     {index + 1}
                   </div>
 
@@ -298,11 +416,15 @@ function Sector1() {
                     <div className="bin-top">
 
                       <div>
-                        <strong>{bin.id}</strong>
+
+                        <strong>
+                          {bin.id}
+                        </strong>
 
                         <span className="bin-location">
                           LB Nagar • Sector 1
                         </span>
+
                       </div>
 
                       <span
@@ -320,16 +442,20 @@ function Sector1() {
                     <div className="collection-action">
 
                       <span>
+
                         {index === 0
-                          ? "Highest priority"
+                          ? "🚛 Truck starts here — Highest waste"
                           : `After ${
                               collectionRoute[index - 1].id
                             }`}
+
                       </span>
 
                       <span className="coordinates">
+
                         {bin.lat.toFixed(5)},{" "}
                         {bin.lng.toFixed(5)}
+
                       </span>
 
                     </div>
@@ -354,11 +480,15 @@ function Sector1() {
           <div className="card-header">
 
             <div>
+
               <span className="section-label">
                 LIVE MAP
               </span>
 
-              <h2>Bin Locations & Route</h2>
+              <h2>
+                Bin Locations & Route
+              </h2>
+
             </div>
 
             <span className="map-status">
@@ -369,15 +499,25 @@ function Sector1() {
 
           <div className="sector-map">
 
-            {/* IMPORTANT:
-                Send ALL bins to map.
-                Map itself decides which bins
-                belong to collection route.
+            {/* 
+              ALL BINS = displayed as colored markers
+
+              collectionRoute = only bins above 50%
+
+              collectionRoute[0] = highest waste
+              = truck starting point
             */}
 
-            <MapView bins={bins} />
+            <MapView
+              bins={bins}
+              collectionRoute={collectionRoute}
+            />
 
           </div>
+
+          {/* =================================================
+              MAP LEGEND
+          ================================================= */}
 
           <div className="map-footer">
 
@@ -397,8 +537,17 @@ function Sector1() {
             </div>
 
             <div>
-              <span className="route-symbol"></span>
-              Route
+              <span
+                className="route-symbol"
+                style={{
+                  background: "#2563eb",
+                }}
+              ></span>
+              Road Route
+            </div>
+
+            <div>
+              🚛 Truck Start
             </div>
 
           </div>
@@ -416,11 +565,15 @@ function Sector1() {
         <div className="card-header">
 
           <div>
+
             <span className="section-label">
               BACKEND DATA
             </span>
 
-            <h2>Current Bin Status</h2>
+            <h2>
+              Current Bin Status
+            </h2>
+
           </div>
 
           <span className="data-count">
@@ -434,13 +587,31 @@ function Sector1() {
           <table className="bin-table">
 
             <thead>
+
               <tr>
-                <th>Bin ID</th>
-                <th>Fill Level</th>
-                <th>Status</th>
-                <th>Latitude</th>
-                <th>Longitude</th>
+
+                <th>
+                  Bin ID
+                </th>
+
+                <th>
+                  Fill Level
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Latitude
+                </th>
+
+                <th>
+                  Longitude
+                </th>
+
               </tr>
+
             </thead>
 
             <tbody>
@@ -450,10 +621,13 @@ function Sector1() {
                 <tr key={bin.id}>
 
                   <td>
-                    <strong>{bin.id}</strong>
+                    <strong>
+                      {bin.id}
+                    </strong>
                   </td>
 
                   <td>
+
                     <span
                       className={`table-level ${
                         bin.level >= 80
@@ -465,13 +639,20 @@ function Sector1() {
                     >
                       {bin.level}%
                     </span>
+
                   </td>
 
-                  <td>{bin.status}</td>
+                  <td>
+                    {bin.status}
+                  </td>
 
-                  <td>{bin.lat}</td>
+                  <td>
+                    {bin.lat}
+                  </td>
 
-                  <td>{bin.lng}</td>
+                  <td>
+                    {bin.lng}
+                  </td>
 
                 </tr>
 

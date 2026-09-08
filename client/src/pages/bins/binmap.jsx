@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   MapContainer,
   TileLayer,
@@ -7,275 +9,487 @@ import {
 } from "react-leaflet";
 
 import L from "leaflet";
-import { useEffect, useState } from "react";
 
 import "leaflet/dist/leaflet.css";
 
 // =====================================================
-// FIX LEAFLET DEFAULT ICON
+// CREATE COLORED BIN ICON
 // =====================================================
 
-delete L.Icon.Default.prototype._getIconUrl;
+const createBinIcon = (
+  level,
+  isStart = false,
+  stopNumber = null
+) => {
 
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  // -----------------------------------------------
+  // HIGHEST WASTE = TRUCK START
+  // -----------------------------------------------
 
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  if (isStart) {
 
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
+    return L.divIcon({
 
-// =====================================================
-// GET COLOR ACCORDING TO FILL LEVEL
-// =====================================================
+      className: "custom-start-marker",
 
-function getBinColor(level) {
-  if (level <= 50) {
-    return "green";
+      html: `
+        <div style="
+          position: relative;
+          width: 55px;
+          height: 55px;
+          border-radius: 50%;
+          background: #dc2626;
+          border: 4px solid white;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 27px;
+        ">
+          🚛
+
+          <span style="
+            position: absolute;
+            top: -10px;
+            right: -12px;
+            background: #111827;
+            color: white;
+            padding: 3px 7px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+          ">
+            START
+          </span>
+
+        </div>
+      `,
+
+      iconSize: [55, 55],
+
+      iconAnchor: [27.5, 27.5],
+
+      popupAnchor: [0, -27.5],
+    });
   }
 
-  if (level <= 80) {
-    return "yellow";
+  // -----------------------------------------------
+  // NORMAL BIN COLORS
+  // -----------------------------------------------
+
+  let background = "#22c55e";
+
+  if (level >= 81) {
+
+    background = "#ef4444";
+
+  } else if (level > 50) {
+
+    background = "#f59e0b";
+
   }
-
-  return "red";
-}
-
-// =====================================================
-// CREATE BIN ICON
-// =====================================================
-
-function createBinIcon(level) {
-  const color = getBinColor(level);
 
   return L.divIcon({
-    className: "bin-icon",
+
+    className: "custom-bin-marker",
 
     html: `
-      <div
-        style="
-          width: 25px;
-          height: 25px;
-          background-color: ${color};
-          border: 3px solid white;
-          border-radius: 50%;
-          box-shadow: 0 0 6px rgba(0,0,0,0.5);
-        "
-      ></div>
+      <div style="
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: ${background};
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 13px;
+        font-weight: bold;
+      ">
+        ${stopNumber || "●"}
+      </div>
+    `,
+
+    iconSize: [34, 34],
+
+    iconAnchor: [17, 17],
+
+    popupAnchor: [0, -17],
+  });
+};
+
+// =====================================================
+// BLUE COLLECTION STOP ICON
+// =====================================================
+
+const createStopIcon = (number) => {
+
+  return L.divIcon({
+
+    className: "collection-stop-marker",
+
+    html: `
+      <div style="
+        width: 31px;
+        height: 31px;
+        border-radius: 50%;
+        background: #2563eb;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 13px;
+        font-weight: bold;
+      ">
+        ${number}
+      </div>
     `,
 
     iconSize: [31, 31],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -15],
+
+    iconAnchor: [15.5, 15.5],
+
+    popupAnchor: [0, -15.5],
   });
-}
+};
 
 // =====================================================
-// MAP COMPONENT
+// MAP VIEW
 // =====================================================
 
-function MapViewBins() {
+function MapView({
+  bins = [],
+  collectionRoute = [],
+}) {
 
-  const [bins, setBins] = useState([]);
+  const [roadRoute, setRoadRoute] = useState([]);
 
-  // ===================================================
-  // GET BIN DATA FROM BACKEND
-  // ===================================================
+  const [routeInfo, setRouteInfo] = useState({
+    distance: 0,
+    duration: 0,
+  });
+
+  const [routeError, setRouteError] = useState("");
+
+  // =====================================================
+  // HIGHEST WASTE BIN
+  //
+  // Sector1 sorts collectionRoute descending by level.
+  // Therefore [0] is always the highest-waste bin.
+  // =====================================================
+
+  const startBin =
+    collectionRoute.length > 0
+      ? collectionRoute[0]
+      : null;
+
+  // =====================================================
+  // OSRM ROUTING
+  // =====================================================
 
   useEffect(() => {
 
-    const getBins = async () => {
+    let cancelled = false;
+
+    const getRoadRoute = async () => {
+
+      // Need at least two bins for a route
+      if (collectionRoute.length < 2) {
+
+        setRoadRoute([]);
+
+        setRouteInfo({
+          distance: 0,
+          duration: 0,
+        });
+
+        setRouteError("");
+
+        return;
+      }
 
       try {
 
-        const response = await fetch(
-          "http://localhost:5000/api/bindata"
+        setRouteError("");
+
+        // ---------------------------------------------
+        // OSRM FORMAT:
+        // longitude,latitude
+        // ---------------------------------------------
+
+        const coordinates =
+          collectionRoute
+            .map(
+              (bin) =>
+                `${bin.lng},${bin.lat}`
+            )
+            .join(";");
+
+        const url =
+          `https://router.project-osrm.org/route/v1/driving/` +
+          `${coordinates}` +
+          `?overview=full&geometries=geojson`;
+
+        console.log(
+          "OSRM route request:",
+          url
         );
 
+        const response =
+          await fetch(url);
+
         if (!response.ok) {
-          throw new Error("Failed to get bin data");
+
+          throw new Error(
+            "OSRM request failed"
+          );
+
         }
 
-        const data = await response.json();
+        const data =
+          await response.json();
 
-        console.log("DATA RECEIVED FROM BACKEND:");
-        console.log(data);
+        if (
+          data.code !== "Ok" ||
+          !data.routes ||
+          data.routes.length === 0
+        ) {
 
-        setBins(data);
+          throw new Error(
+            "OSRM could not find road route"
+          );
+
+        }
+
+        if (cancelled) return;
+
+        const route =
+          data.routes[0];
+
+        // ---------------------------------------------
+        // OSRM gives:
+        //
+        // [longitude, latitude]
+        //
+        // Leaflet needs:
+        //
+        // [latitude, longitude]
+        // ---------------------------------------------
+
+        const leafletCoordinates =
+          route.geometry.coordinates.map(
+            ([lng, lat]) => [
+              lat,
+              lng,
+            ]
+          );
+
+        setRoadRoute(
+          leafletCoordinates
+        );
+
+        setRouteInfo({
+
+          distance:
+            route.distance,
+
+          duration:
+            route.duration,
+
+        });
 
       } catch (error) {
 
-        console.error(
-          "Error receiving bin data:",
-          error
-        );
+        if (!cancelled) {
+
+          console.error(
+            "OSRM routing error:",
+            error
+          );
+
+          setRoadRoute([]);
+
+          setRouteInfo({
+            distance: 0,
+            duration: 0,
+          });
+
+          setRouteError(
+            "Road route could not be loaded."
+          );
+
+        }
 
       }
 
     };
 
-    // Get data immediately
-    getBins();
+    getRoadRoute();
 
-    // Check backend every 5 seconds
-    const interval = setInterval(getBins, 5000);
+    return () => {
+      cancelled = true;
+    };
 
-    return () => clearInterval(interval);
+  }, [collectionRoute]);
 
-  }, []);
+  // =====================================================
+  // MAP CENTER
+  // =====================================================
 
-  // ===================================================
-  // BINS REQUIRING COLLECTION
-  // LEVEL > 50%
-  // ===================================================
+  const center =
+    bins.length > 0
+      ? [
+          bins[0].lat,
+          bins[0].lng,
+        ]
+      : [
+          17.3850,
+          78.4867,
+        ];
 
-  const collectionBins = bins
-    .filter(
-      (bin) =>
-        Number(bin.fillLevel) > 50
-    )
-    .sort(
-      (a, b) =>
-        Number(b.fillLevel) -
-        Number(a.fillLevel)
-    );
-
-  // ===================================================
-  // CREATE COLLECTION ROUTE
-  // ===================================================
-
-  const routeCoordinates =
-    collectionBins.map((bin) => [
-      Number(bin.Latitude),
-      Number(bin.Longitude),
-    ]);
-
-  // ===================================================
-  // MAP
-  // ===================================================
+  // =====================================================
+  // RETURN MAP
+  // =====================================================
 
   return (
 
     <div
       style={{
-        position: "relative",
+        height: "100%",
         width: "100%",
+        position: "relative",
       }}
     >
 
       <MapContainer
-        center={[
-          17.346472,
-          78.550635,
-        ]}
+        center={center}
         zoom={14}
         style={{
-          height: "500px",
+          height: "100%",
           width: "100%",
         }}
       >
 
-        {/* ==========================================
+        {/* =================================================
             OPEN STREET MAP
-        ========================================== */}
+        ================================================= */}
 
         <TileLayer
           attribution="&copy; OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* ==========================================
-            COLLECTION ROUTE
-        ========================================== */}
-
-        {routeCoordinates.length >= 2 && (
-
-          <Polyline
-            positions={routeCoordinates}
-            pathOptions={{
-              color: "blue",
-              weight: 5,
-              opacity: 0.8,
-            }}
-          />
-
-        )}
-
-        {/* ==========================================
-            BIN LOCATIONS
-        ========================================== */}
+        {/* =================================================
+            ALL BIN MARKERS
+        ================================================= */}
 
         {bins.map((bin) => {
 
-          const level =
-            Number(bin.fillLevel) || 0;
+          const routeIndex =
+            collectionRoute.findIndex(
+              (routeBin) =>
+                routeBin.id === bin.id
+            );
+
+          const isStart =
+            startBin &&
+            bin.id === startBin.id;
 
           return (
 
             <Marker
               key={bin.id}
               position={[
-                Number(bin.Latitude),
-                Number(bin.Longitude),
+                bin.lat,
+                bin.lng,
               ]}
-              icon={createBinIcon(level)}
+              icon={createBinIcon(
+                bin.level,
+                isStart,
+                routeIndex >= 0
+                  ? routeIndex + 1
+                  : null
+              )}
+              zIndexOffset={
+                isStart ? 2000 : 1000
+              }
             >
 
               <Popup>
 
-                <div>
+                <strong>
+                  {bin.id}
+                </strong>
 
-                  <h3
-                    style={{
-                      margin: "0 0 8px 0",
-                    }}
-                  >
-                    {bin.id}
-                  </h3>
+                <br />
 
-                  <b>
-                    Fill Level: {level}%
-                  </b>
+                Fill Level:
+                {" "}
+                {bin.level}%
 
-                  <br />
+                <br />
 
-                  Latitude: {bin.Latitude}
+                Status:
+                {" "}
+                {bin.status}
 
-                  <br />
+                {/* ========================================
+                    TRUCK START
+                ======================================== */}
 
-                  Longitude: {bin.Longitude}
+                {isStart && (
 
-                  <br />
+                  <>
 
-                  Status:{" "}
+                    <hr />
 
-                  <b>
-                    {level <= 50
-                      ? "Normal"
-                      : level <= 80
-                      ? "Warning"
-                      : "Full"}
-                  </b>
-
-                  <br />
-
-                  {level > 50 && (
-
-                    <span
+                    <strong
                       style={{
-                        color: "blue",
-                        fontWeight: "bold",
+                        color: "#dc2626",
                       }}
                     >
-                      Collection Required
-                    </span>
+                      🚛 TRUCK START
+                    </strong>
+
+                    <br />
+
+                    Highest waste:
+                    {" "}
+                    {bin.level}%
+
+                    <br />
+
+                    Collection stop:
+                    {" "}
+                    #1
+
+                  </>
+
+                )}
+
+                {/* ========================================
+                    OTHER COLLECTION STOP
+                ======================================== */}
+
+                {!isStart &&
+                  routeIndex >= 0 && (
+
+                    <>
+
+                      <hr />
+
+                      <strong>
+                        Collection Stop #
+                        {routeIndex + 1}
+                      </strong>
+
+                    </>
 
                   )}
-
-                </div>
 
               </Popup>
 
@@ -285,83 +499,242 @@ function MapViewBins() {
 
         })}
 
+        {/* =================================================
+            COLLECTION STOP MARKERS
+        ================================================= */}
+
+        {collectionRoute.map(
+          (bin, index) => {
+
+            // Highest waste already has
+            // truck START marker
+
+            if (index === 0) {
+              return null;
+            }
+
+            return (
+
+              <Marker
+                key={
+                  `stop-${bin.id}`
+                }
+                position={[
+                  bin.lat,
+                  bin.lng,
+                ]}
+                icon={createStopIcon(
+                  index + 1
+                )}
+                zIndexOffset={1500}
+              >
+
+                <Popup>
+
+                  <strong>
+                    Collection Stop #
+                    {index + 1}
+                  </strong>
+
+                  <br />
+
+                  Bin:
+                  {" "}
+                  {bin.id}
+
+                  <br />
+
+                  Waste:
+                  {" "}
+                  {bin.level}%
+
+                </Popup>
+
+              </Marker>
+
+            );
+
+          }
+        )}
+
+        {/* =================================================
+            OSRM ROAD ROUTE
+        ================================================= */}
+
+        {roadRoute.length > 0 && (
+
+          <Polyline
+            positions={roadRoute}
+            pathOptions={{
+              color: "#2563eb",
+              weight: 6,
+              opacity: 0.9,
+            }}
+          />
+
+        )}
+
       </MapContainer>
 
-      {/* ==========================================
-          LEGEND
-      ========================================== */}
+      {/* =================================================
+          TRUCK START INFORMATION
+      ================================================= */}
 
       <div
         style={{
           position: "absolute",
-          right: "15px",
-          bottom: "15px",
+          top: "15px",
+          left: "15px",
           zIndex: 1000,
           background: "white",
-          padding: "12px",
-          borderRadius: "8px",
+          padding: "13px 16px",
+          borderRadius: "10px",
           boxShadow:
-            "0 2px 8px rgba(0,0,0,0.3)",
-          fontSize: "14px",
+            "0 3px 12px rgba(0,0,0,0.25)",
+          minWidth: "210px",
         }}
       >
 
-        <b>Bin Status</b>
+        {startBin ? (
 
-        <div>
-          <span
+          <>
+
+            <strong
+              style={{
+                display: "block",
+                color: "#dc2626",
+                fontSize: "15px",
+                marginBottom: "5px",
+              }}
+            >
+              🚛 Truck Starting Point
+            </strong>
+
+            <div>
+
+              <strong>
+                {startBin.id}
+              </strong>
+
+            </div>
+
+            <div>
+              Waste:
+              {" "}
+              <strong>
+                {startBin.level}%
+              </strong>
+            </div>
+
+            <div
+              style={{
+                marginTop: "5px",
+                fontSize: "12px",
+              }}
+            >
+              Highest-waste bin
+            </div>
+
+            {routeInfo.distance > 0 && (
+
+              <>
+
+                <hr />
+
+                <div>
+                  Route distance:
+                  {" "}
+                  {(routeInfo.distance / 1000)
+                    .toFixed(2)}
+                  {" "}
+                  km
+                </div>
+
+                <div>
+                  Estimated time:
+                  {" "}
+                  {Math.round(
+                    routeInfo.duration / 60
+                  )}
+                  {" "}
+                  min
+                </div>
+
+              </>
+
+            )}
+
+          </>
+
+        ) : (
+
+          <strong>
+            No collection required
+          </strong>
+
+        )}
+
+        {routeError && (
+
+          <div
             style={{
-              color: "green",
-              fontSize: "20px",
+              marginTop: "8px",
+              color: "#dc2626",
+              fontSize: "12px",
             }}
           >
-            ●
-          </span>
-          {" "}0–50% Normal
+            {routeError}
+          </div>
+
+        )}
+
+      </div>
+
+      {/* =================================================
+          MAP LEGEND
+      ================================================= */}
+
+      <div
+        style={{
+          position: "absolute",
+          bottom: "15px",
+          right: "15px",
+          zIndex: 1000,
+          background: "white",
+          padding: "10px 13px",
+          borderRadius: "8px",
+          boxShadow:
+            "0 2px 8px rgba(0,0,0,0.25)",
+          fontSize: "12px",
+          lineHeight: "1.9",
+        }}
+      >
+
+        <div>
+          🟢 Normal — 0–50%
         </div>
 
         <div>
-          <span
-            style={{
-              color: "gold",
-              fontSize: "20px",
-            }}
-          >
-            ●
-          </span>
-          {" "}51–80% Warning
+          🟠 High — 51–80%
         </div>
 
         <div>
-          <span
-            style={{
-              color: "red",
-              fontSize: "20px",
-            }}
-          >
-            ●
-          </span>
-          {" "}81–100% Full
+          🔴 Critical — 81–100%
         </div>
 
-        <hr />
+        <div>
+          🚛 Truck starts at highest waste
+        </div>
 
         <div>
-          <span
-            style={{
-              color: "blue",
-              fontSize: "20px",
-            }}
-          >
-            ━
-          </span>
-          {" "}Collection Route
+          🔵 Blue line — OSRM road route
         </div>
 
       </div>
 
     </div>
+
   );
 }
 
-export default MapViewBins;
+export default MapView;
