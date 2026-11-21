@@ -56,7 +56,7 @@ app.get("/api/bindata", (req, res) => {
 // ==========================================
 // UPDATE MULTIPLE BINS
 // ==========================================
-
+// used multip bin data
 app.put("/api/bins", (req, res) => {
   try {
     // Prevent req.body undefined error
