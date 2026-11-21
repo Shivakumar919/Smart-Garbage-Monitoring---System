@@ -11,6 +11,8 @@ npm-debug.log*
 
 # Upload files
 uploads/
+mydata.txt
+
 
 # Build files
 dist/
